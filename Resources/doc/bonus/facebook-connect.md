@@ -10,7 +10,7 @@ This guide bases on Symfony 2.1+ and the [AcmeDemoBundle](https://github.com/sym
 # app/config/config.yml
 
 hwi_oauth:
-    firewall_name:         secured_area
+    firewall_names:        [secured_area]
     resource_owners:
         facebook:
             type:          facebook
@@ -18,7 +18,7 @@ hwi_oauth:
             client_secret: <client_secret>
             scope:         "email"
             options:
-                display: popup #dialog is optimized for popup window            
+                display: popup #dialog is optimized for popup window
 
 services:
     hwi_oauth.user.provider.entity:
@@ -35,7 +35,7 @@ hwi_oauth_redirect:
     prefix:   /demo/secured/connect
 
 facebook_login:
-    pattern: /demo/secured/login_facebook
+    path: /demo/secured/login_facebook
 ```
 
 ### Configuration of the Security Layer
@@ -61,7 +61,7 @@ firewalls:
 
 ## Adding the Facebook Login Button
 
-The following example bases also on the Facebook ["Login with Javascript SDK"](https://developers.facebook.com/docs/howtos/login/getting-started/) guide. 
+The following example bases also on the Facebook ["Login with Javascript SDK"](https://developers.facebook.com/docs/howtos/login/getting-started/) guide.
 
 ```html+jinja
 # src/Acme/DemoBundle/Resources/views/Secured/hello.html.twig
@@ -121,7 +121,7 @@ The following example bases also on the Facebook ["Login with Javascript SDK"](h
 {% endblock %}
 ```
 
-Make sure `{scope: 'email'}` is added as the second argument to FB.login. Or elsewhere, you would have to prompt the user with the authentification for the basic data, and then ask him again to accept that you need his email.
+Make sure `{scope: 'email'}` is added as the second argument to FB.login. Or elsewhere, you would have to prompt the user with the authentication for the basic data, and then ask him again to accept that you need his email.
 
 ## Watch the results!
 

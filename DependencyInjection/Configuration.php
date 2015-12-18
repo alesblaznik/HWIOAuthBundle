@@ -32,17 +32,22 @@ class Configuration implements ConfigurationInterface
         'oauth2' => array(
             'amazon',
             'auth0',
+            'azure',
             'bitly',
             'box',
+            'bufferapp',
             'dailymotion',
             'deviantart',
+            'deezer',
             'disqus',
             'eve_online',
             'eventbrite',
             'facebook',
+            'fiware',
             'foursquare',
             'github',
             'google',
+            'youtube',
             'hubic',
             'instagram',
             'linkedin',
@@ -51,14 +56,20 @@ class Configuration implements ConfigurationInterface
             'paypal',
             'qq',
             'reddit',
+            'runkeeper',
             'salesforce',
             'sensio_connect',
             'sina_weibo',
+            'slack',
+            'spotify',
             'soundcloud',
             'stack_exchange',
+            'strava',
             'toshl',
+            'trakt',
             'twitch',
             'vkontakte',
+            'wechat',
             'windows_live',
             'wordpress',
             'yandex',
@@ -66,6 +77,7 @@ class Configuration implements ConfigurationInterface
         ),
         'oauth1' => array(
             'bitbucket',
+            'discogs',
             'dropbox',
             'flickr',
             'jira',
@@ -125,10 +137,15 @@ class Configuration implements ConfigurationInterface
         $rootNode = $builder->root('hwi_oauth');
         $rootNode
             ->children()
-                ->scalarNode('firewall_name')->isRequired()->cannotBeEmpty()->end()
+                // TODO: firewall_names should replace firewall_name in next major version, and should be ->isRequired()->cannotBeEmpty()
+                ->scalarNode('firewall_name')->end()
+                ->arrayNode('firewall_names')
+                    ->prototype('scalar')->end()
+                ->end()
                 ->scalarNode('target_path_parameter')->defaultNull()->end()
                 ->booleanNode('use_referer')->defaultFalse()->end()
                 ->scalarNode('templating_engine')->defaultValue('twig')->end()
+                ->scalarNode('failed_auth_path')->defaultValue('hwi_oauth_connect')->end()
             ->end()
         ;
 
@@ -149,6 +166,7 @@ class Configuration implements ConfigurationInterface
                     ->isRequired()
                     ->useAttributeAsKey('name')
                     ->prototype('array')
+                        ->ignoreExtraKeys()
                         ->children()
                             ->scalarNode('base_url')->end()
                             ->scalarNode('access_token_url')

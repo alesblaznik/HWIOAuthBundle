@@ -11,6 +11,7 @@
 
 namespace HWI\Bundle\OAuthBundle\OAuth\ResourceOwner;
 
+use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
@@ -66,6 +67,7 @@ class SalesforceResourceOwner extends GenericOAuth2ResourceOwner
         parent::configureOptions($resolver);
 
         $resolver->setDefaults(array(
+            'sandbox'           => false,
             'authorization_url' => 'https://login.salesforce.com/services/oauth2/authorize',
             'access_token_url'  => 'https://login.salesforce.com/services/oauth2/token',
 
@@ -75,6 +77,32 @@ class SalesforceResourceOwner extends GenericOAuth2ResourceOwner
             // @see SalesforceResourceOwner::doGetUserInformationRequest()
             'format'            => 'json',
         ));
-    }
 
+        $sandboxTransformation = function (Options $options, $value) {
+            if (!$options['sandbox']) {
+                return $value;
+            }
+
+            return preg_replace('~\.login\.~', '.test.', $value, 1);
+        };
+
+        // Symfony <2.6 BC
+        if (method_exists($resolver, 'setNormalizer')) {
+            $resolver
+                ->setNormalizer('authorization_url', $sandboxTransformation)
+                ->setNormalizer('access_token_url', $sandboxTransformation)
+            ;
+
+            $resolver->addAllowedTypes('sandbox', 'bool');
+        } else {
+            $resolver->setNormalizers(array(
+                'authorization_url' => $sandboxTransformation,
+                'access_token_url' => $sandboxTransformation,
+            ));
+
+            $resolver->addAllowedTypes(array(
+                'sandbox' => 'bool',
+            ));
+        }
+    }
 }

@@ -26,6 +26,8 @@ json;
     protected $paths = array(
         'identifier' => 'id',
         'nickname'   => 'username',
+        'firstname'   => 'first_name',
+        'lastname'   => 'last_name',
         'realname'   => 'name',
     );
 
@@ -40,6 +42,26 @@ json;
         $this->resourceOwner->getAccessToken($request, 'http://redirect.to/');
     }
 
+    public function testAuthTypeRerequest()
+    {
+        $resourceOwner = $this->createResourceOwner($this->resourceOwnerName, array('auth_type' => 'rerequest'));
+
+        $this->assertEquals(
+            $this->options['authorization_url'] . '&response_type=code&client_id=clientid&state=random&redirect_uri=http%3A%2F%2Fredirect.to%2F&auth_type=rerequest',
+            $resourceOwner->getAuthorizationUrl('http://redirect.to/')
+        );
+    }
+
+    public function testAuthTypeRerequestAndDisplayPopup()
+    {
+        $resourceOwner = $this->createResourceOwner($this->resourceOwnerName, array('display' => 'popup', 'auth_type' => 'rerequest'));
+
+        $this->assertEquals(
+            $this->options['authorization_url'] . '&response_type=code&client_id=clientid&state=random&redirect_uri=http%3A%2F%2Fredirect.to%2F&display=popup&auth_type=rerequest',
+            $resourceOwner->getAuthorizationUrl('http://redirect.to/')
+        );
+    }
+
     public function testDisplayPopup()
     {
         $resourceOwner = $this->createResourceOwner($this->resourceOwnerName, array('display' => 'popup'));
@@ -51,7 +73,7 @@ json;
     }
 
     /**
-     * @expectedException \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\ExceptionInterface
      */
     public function testInvalidDisplayOptionValueThrowsException()
     {
@@ -60,14 +82,16 @@ json;
 
     public function testRevokeToken()
     {
-        $this->mockBuzz('true', 'application/json');
+        $this->buzzResponseHttpCode = 200;
+        $this->mockBuzz('{"access_token": "bar"}', 'application/json');
 
         $this->assertTrue($this->resourceOwner->revokeToken('token'));
     }
 
     public function testRevokeTokenFails()
     {
-        $this->mockBuzz('false', 'application/json');
+        $this->buzzResponseHttpCode = 401;
+        $this->mockBuzz('{"access_token": "bar"}', 'application/json');
 
         $this->assertFalse($this->resourceOwner->revokeToken('token'));
     }

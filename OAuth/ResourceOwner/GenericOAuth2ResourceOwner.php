@@ -31,9 +31,9 @@ class GenericOAuth2ResourceOwner extends AbstractResourceOwner
     public function getUserInformation(array $accessToken, array $extraParameters = array())
     {
         if ($this->options['use_bearer_authorization']) {
-            $content = $this->httpRequest($this->normalizeUrl($this->options['infos_url']), null, array('Authorization: Bearer '.$accessToken['access_token']));
+            $content = $this->httpRequest($this->normalizeUrl($this->options['infos_url'], $extraParameters), null, array('Authorization: Bearer '.$accessToken['access_token']));
         } else {
-            $content = $this->doGetUserInformationRequest($this->normalizeUrl($this->options['infos_url'], array($this->options['attr_name'] => $accessToken['access_token'])));
+            $content = $this->doGetUserInformationRequest($this->normalizeUrl($this->options['infos_url'], array_merge(array($this->options['attr_name'] => $accessToken['access_token']), $extraParameters)));
         }
 
         $response = $this->getUserResponse();
@@ -177,7 +177,7 @@ class GenericOAuth2ResourceOwner extends AbstractResourceOwner
      */
     protected function doGetUserInformationRequest($url, array $parameters = array())
     {
-        return $this->httpRequest($url);
+        return $this->httpRequest($url, http_build_query($parameters, '', '&'));
     }
 
     /**
@@ -213,24 +213,36 @@ class GenericOAuth2ResourceOwner extends AbstractResourceOwner
             'use_bearer_authorization' => true,
         ));
 
-        $resolver->setOptional(array(
-            'revoke_token_url',
-        ));
+        // Symfony <2.6 BC
+        if (method_exists($resolver, 'setDefined')) {
+            $resolver->setDefined('revoke_token_url');
+        } else {
+            $resolver->setOptional(array(
+                'revoke_token_url',
+            ));
+        }
 
-        $resolver->setNormalizers(array(
-            // Unfortunately some resource owners break the spec by using commas instead
-            // of spaces to separate scopes (Disqus, Facebook, Github, Vkontante)
-            'scope' => function (Options $options, $value) {
-                if (!$value) {
-                    return null;
-                }
+        // Unfortunately some resource owners break the spec by using commas instead
+        // of spaces to separate scopes (Disqus, Facebook, Github, Vkontante)
+        $scopeNormalizer = function (Options $options, $value) {
+            if (!$value) {
+                return null;
+            }
 
-                if (!$options['use_commas_in_scope']) {
-                    return $value;
-                }
+            if (!$options['use_commas_in_scope']) {
+                return $value;
+            }
 
-                return str_replace(',', ' ', $value);
-            },
-        ));
+            return str_replace(',', ' ', $value);
+        };
+
+        // Symfony <2.6 BC
+        if (method_exists($resolver, 'setNormalizer')) {
+            $resolver->setNormalizer('scope', $scopeNormalizer);
+        } else {
+            $resolver->setNormalizers(array(
+                'scope' => $scopeNormalizer,
+            ));
+        }
     }
 }

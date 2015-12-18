@@ -28,6 +28,8 @@ class GoogleResourceOwner extends GenericOAuth2ResourceOwner
         'identifier'     => 'id',
         'nickname'       => 'name',
         'realname'       => 'name',
+        'firstname'      => 'given_name',
+        'lastname'       => 'family_name',
         'email'          => 'email',
         'profilepicture' => 'picture',
     );
@@ -44,6 +46,16 @@ class GoogleResourceOwner extends GenericOAuth2ResourceOwner
             'hd'                      => $this->options['hd'],
             'prompt'                  => $this->options['prompt']
         ), $extraParameters));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function revokeToken($token)
+    {
+        $response = $this->httpRequest($this->normalizeUrl($this->options['revoke_token_url'], array('token' => $token)));
+
+        return 200 === $response->getStatusCode();
     }
 
     /**
@@ -71,15 +83,25 @@ class GoogleResourceOwner extends GenericOAuth2ResourceOwner
             'request_visible_actions' => null,
         ));
 
-        $resolver->setAllowedValues(array(
-            // @link https://developers.google.com/accounts/docs/OAuth2WebServer#offline
-            'access_type'     => array('online', 'offline', null),
-            // sometimes we need to force for approval prompt (e.g. when we lost refresh token)
-            'approval_prompt' => array('force', 'auto', null),
-            // @link https://developers.google.com/accounts/docs/OAuth2Login#authenticationuriparameters
-            'display'         => array('page', 'popup', 'touch', 'wap', null),
-            'login_hint'      => array('email address', 'sub', null),
-            'prompt'          => array('consent', 'select_account', null),
-        ));
+        if (method_exists($resolver, 'setDefined')) {
+            $resolver
+                // @link https://developers.google.com/accounts/docs/OAuth2WebServer#offline
+                ->setAllowedValues('access_type', array('online', 'offline', null))
+                // sometimes we need to force for approval prompt (e.g. when we lost refresh token)
+                ->setAllowedValues('approval_prompt', array('force', 'auto', null))
+                // @link https://developers.google.com/accounts/docs/OAuth2Login#authenticationuriparameters
+                ->setAllowedValues('display', array('page', 'popup', 'touch', 'wap', null))
+                ->setAllowedValues('login_hint', array('email address', 'sub', null))
+                ->setAllowedValues('prompt', array('consent', 'select_account', null))
+            ;
+        } else {
+            $resolver->setAllowedValues(array(
+                'access_type'     => array('online', 'offline', null),
+                'approval_prompt' => array('force', 'auto', null),
+                'display'         => array('page', 'popup', 'touch', 'wap', null),
+                'login_hint'      => array('email address', 'sub', null),
+                'prompt'          => array('consent', 'select_account', null),
+            ));
+        }
     }
 }

@@ -13,6 +13,8 @@ namespace HWI\Bundle\OAuthBundle\Security\Http;
 
 use HWI\Bundle\OAuthBundle\OAuth\ResourceOwnerInterface;
 use Symfony\Component\DependencyInjection\ContainerAware;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\HttpUtils;
 
@@ -22,7 +24,7 @@ use Symfony\Component\Security\Http\HttpUtils;
  *
  * @author Alexander <iam.asm89@gmail.com>
  */
-class ResourceOwnerMap extends ContainerAware
+class ResourceOwnerMap implements ContainerAwareInterface
 {
     /**
      * @var HttpUtils
@@ -40,6 +42,11 @@ class ResourceOwnerMap extends ContainerAware
     protected $possibleResourceOwners;
 
     /**
+     * @var ContainerInterface
+     */
+    protected $container;
+
+    /**
      * Constructor.
      *
      * @param HttpUtils $httpUtils              HttpUtils
@@ -54,6 +61,26 @@ class ResourceOwnerMap extends ContainerAware
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function setContainer(ContainerInterface $container = null)
+    {
+        $this->container = $container;
+    }
+
+    /**
+     * Check that resource owner with given name exists.
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasResourceOwnerByName($name)
+    {
+        return isset($this->resourceOwners[$name], $this->possibleResourceOwners[$name]);
+    }
+
+    /**
      * Gets the appropriate resource owner given the name.
      *
      * @param string $name
@@ -62,16 +89,11 @@ class ResourceOwnerMap extends ContainerAware
      */
     public function getResourceOwnerByName($name)
     {
-        if (!isset($this->resourceOwners[$name])) {
-            return null;
-        }
-        if (!in_array($name, $this->possibleResourceOwners)) {
+        if (!$this->hasResourceOwnerByName($name)) {
             return null;
         }
 
-        $service = $this->container->get('hwi_oauth.resource_owner.'.$name);
-
-        return $service;
+        return $this->container->get('hwi_oauth.resource_owner.'.$name);
     }
 
     /**

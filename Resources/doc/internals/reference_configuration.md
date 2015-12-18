@@ -41,11 +41,11 @@ hwi_oauth:
             authorization_url:   https://path.to/oauth/v2/authorize
             infos_url:           https://path.to/api/user
             scope:               "user_details"
-            user_response_class: HWI\Bundle\OAuthBundle\OAuth\Response\AdvancedPathUserResponse
+            user_response_class: HWI\Bundle\OAuthBundle\OAuth\Response\PathUserResponse
             paths:
                 identifier: id
                 nickname:   username
-                email:      email
+                realname:   fullname
 
         my_custom_oauth1:
             type:                oauth1
@@ -61,8 +61,8 @@ hwi_oauth:
                 identifier: id
                 nickname:   username
 
-    # name of the firewall the oauth bundle is active in
-    firewall_name: secured_area
+    # list of firewall names the oauth bundle is active in
+    firewall_names: [secured_area]
 
     # optional target_path_parameter to provide an explicit return URL
     #target_path_parameter: _destination
@@ -138,16 +138,16 @@ hwi_oauth_redirect:
     prefix:   /connect
 
 facebook_login:
-    pattern: /login/check-facebook
+    path: /login/check-facebook
 
 google_login:
-    pattern: /login/check-google
+    path: /login/check-google
 
 custom_login:
-    pattern: /login/check-custom
+    path: /login/check-custom
 
 github_login:
-    pattern: /login/check-github
+    path: /login/check-github
 ```
 
 [Return to the index.](../index.md)

@@ -74,9 +74,14 @@ class GenericOAuth1ResourceOwner extends AbstractResourceOwner
      */
     public function getAccessToken(Request $request, $redirectUri, array $extraParameters = array())
     {
-        if (null === $requestToken = $this->storage->fetch($this, $request->query->get('oauth_token'))) {
-            throw new \RuntimeException('No request token found in the storage.');
+        try {
+            if (null === $requestToken = $this->storage->fetch($this, $request->query->get('oauth_token'))) {
+                throw new \RuntimeException('No request token found in the storage.');
+            }
+        } catch (\InvalidArgumentException $e) {
+            throw new AuthenticationException('Given token is not valid.');
         }
+
 
         $parameters = array_merge(array(
             'oauth_consumer_key'     => $this->options['client_id'],
@@ -228,8 +233,12 @@ class GenericOAuth1ResourceOwner extends AbstractResourceOwner
             'signature_method' => 'HMAC-SHA1',
         ));
 
-        $resolver->setAllowedValues(array(
-            'signature_method' => array('HMAC-SHA1', 'RSA-SHA1', 'PLAINTEXT'),
-        ));
+        if (method_exists($resolver, 'setDefined')) {
+            $resolver->setAllowedValues('signature_method', array('HMAC-SHA1', 'RSA-SHA1', 'PLAINTEXT'));
+        } else {
+            $resolver->setAllowedValues(array(
+                'signature_method' => array('HMAC-SHA1', 'RSA-SHA1', 'PLAINTEXT'),
+            ));
+        }
     }
 }
