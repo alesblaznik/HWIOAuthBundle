@@ -68,6 +68,7 @@ class Configuration implements ConfigurationInterface
             'toshl',
             'trakt',
             'twitch',
+            'visual_studio',
             'vkontakte',
             'wechat',
             'windows_live',
