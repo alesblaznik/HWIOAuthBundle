@@ -62,4 +62,29 @@ class VisualStudioResourceOwner extends GenericOAuth2ResourceOwner
 
         return $response;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function refreshAccessToken($refreshToken, array $extraParameters = [])
+    {
+        $parameters = array_merge(array(
+            'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            'client_assertion'      => $this->options['client_secret'],
+            'grant_type'            => 'refresh_token',
+            'assertion'             => $refreshToken,
+            'redirect_uri'          => 'https://api.prodpad.si/api/v2/integrations/connect',
+        ), $extraParameters);
+
+        $response = $this->httpRequest(
+            $this->options['access_token_url'],
+            http_build_query($parameters),
+            ['Content-Type: application/x-www-form-urlencoded', 'Accept: application/json']
+        );
+
+        $response = $this->getResponseContent($response);
+        $this->validateResponseContent($response);
+
+        return $response;
+    }
 }
