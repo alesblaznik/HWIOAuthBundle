@@ -73,7 +73,7 @@ class VisualStudioResourceOwner extends GenericOAuth2ResourceOwner
             'client_assertion'      => $this->options['client_secret'],
             'grant_type'            => 'refresh_token',
             'assertion'             => $refreshToken,
-            'redirect_uri'          => 'https://api.prodpad.si/api/v2/integrations/connect',
+            'redirect_uri'          => $extraParameters['redirect_uri'],
         ), $extraParameters);
 
         $response = $this->httpRequest(
