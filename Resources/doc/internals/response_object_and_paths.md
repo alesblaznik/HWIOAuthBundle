@@ -58,14 +58,15 @@ hwi_oauth:
            client_id:     <client_id>
            client_secret: <client_secret>
            scope:         r_fullprofile
-           infos_url:     "http://api.linkedin.com/v1/people/~:(id,formatted-name,recommendations-received)"
+           infos_url:     "https://api.linkedin.com/v1/people/~:(id,formatted-name,recommendations-received)"
 ```
 
 Again the details can be accessed in i.e. `loadUserByOAuthUserResponse(UserResponseInterface $response)`:
 
 ```php
+// This method will return all data that was sent from resource owner
 /* @var $response \HWI\Bundle\OAuthBundle\OAuth\Response\UserResponseInterface */
-$data = $response->getResponse(); /* this method will return all data that was sent from resource owner */
+$data = $response->getData();
 
 var_dump(
    $data['recommendations-received']
